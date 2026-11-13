@@ -733,8 +733,8 @@ The following are potential extensions; they are **not included** in the supplie
 
 ---
 
-## 18. License and Credits
+## 18. TEAM MEMBERS
 
-No license information is included in the supplied source file. Add a `LICENSE` file and update this section if the project is distributed under a particular license.
-
-The README describes the behavior visible in the supplied `index.html`. Features listed under **Possible Future Improvements** are suggestions, not claims about existing functionality.
+--- Omkar Sharma 
+--- Sunaina Dhali
+--- Sanajana Dhali
