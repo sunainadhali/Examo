@@ -735,6 +735,4 @@ The following are potential extensions; they are **not included** in the supplie
 
 ## 18. TEAM MEMBERS
 
---- Omkar Sharma 
---- Sunaina Dhali
---- Sanajana Dhali
+- Omkar Sharma |Sunaina Dhali | Sanjana Dhali
