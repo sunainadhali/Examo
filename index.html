@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ExamDesk — Exam Management Portal</title>
+<style>
+  :root{
+    --ink:#1e2a4a; --ink-soft:#4a5573; --paper:#f7f6f2; --card:#ffffff;
+    --line:#e3e1da; --accent:#2f5bd3; --pass:#2f7d5b; --fail:#b4442f; --muted:#8a8f9e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Geist,system-ui,sans-serif;background:var(--paper);color:var(--ink);line-height:1.5}
+  button,input,select{font:inherit;color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+  header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{width:36px;height:36px;border-radius:8px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700}
+  .brand h1{font-size:18px;margin:0}
+  .brand p{margin:0;font-size:12px;color:var(--muted)}
+  .seg{display:inline-flex;background:#ebe9e2;border-radius:10px;padding:4px}
+  .seg button{border:0;background:transparent;padding:8px 16px;border-radius:7px;cursor:pointer;font-weight:500;color:var(--ink-soft)}
+  .seg button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .stack{display:flex;flex-direction:column;gap:16px}
+  h2{font-size:17px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin:0}
+  label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--ink-soft)}
+  input,select{border:1px solid var(--line);border-radius:8px;padding:9px 11px;background:#fff;min-width:0}
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .btn{border:0;border-radius:8px;padding:10px 16px;background:var(--ink);color:#fff;cursor:pointer;font-weight:500}
+  .btn:hover{opacity:.92}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.sm{padding:6px 10px;font-size:13px}
+  .btn.danger{background:transparent;color:var(--fail);border:1px solid #ecd2cc}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow-x:auto}
+  .tabs button{border:0;background:none;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;border-bottom:2px solid transparent;white-space:nowrap}
+  .tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
+  .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{background:#faf9f6;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600}
+  tr:last-child td{border-bottom:0}
+  td input{width:90px;padding:6px 8px}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .pill.pass{background:#e4f1ea;color:var(--pass)}
+  .pill.fail{background:#f6e4df;color:var(--fail)}
+  .pill.draft{background:#eeede8;color:var(--ink-soft)}
+  .pill.live{background:#e3eafb;color:var(--accent)}
+  .stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+  .stat{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fcfbf8}
+  .stat b{display:block;font-size:22px}
+  .stat span{font-size:12px;color:var(--muted)}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.show{opacity:1}
+  .hint{font-size:12px;color:var(--muted)}
+  .err{color:var(--fail);font-size:13px;margin:0}
+  .empty{padding:24px;text-align:center;color:var(--muted);font-size:14px}
+  .result-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:start}
+  .switch{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  [hidden]{display:none!important}
+  @media print{header,.no-print,.tabs{display:none!important}body{background:#fff}.card{border:0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">E</div>
+      <div><h1>EXAMO</h1><p>Exam management &amp; results portal</p></div>
+    </div>
+    <div class="seg" role="tablist" aria-label="Choose role">
+      <button role="tab" id="roleTeacher" aria-selected="true">I&apos;m a Teacher</button>
+      <button role="tab" id="roleStudent" aria-selected="false">I&apos;m a Student</button>
+    </div>
+  </header>
+
+  <!-- TEACHER -->
+  <main id="teacherView">
+    <section id="teacherLogin" class="card stack" style="max-width:420px;margin:0 auto">
+      <div><h2>Teacher sign in</h2><p class="sub">Enter your staff PIN to manage exams and marks.</p></div>
+      <form id="loginForm" class="stack">
+        <label>Staff PIN<input id="pin" type="password" inputmode="numeric" autocomplete="off" required></label>
+        <p id="loginErr" class="err" hidden>Incorrect PIN. Try again.</p>
+        <button class="btn" type="submit">Sign in</button>
+        <p class="hint">Demo PIN: <b>1234</b></p>
+      </form>
+    </section>
+
+    <section id="teacherPanel" hidden>
+      <div class="row no-print" style="justify-content:space-between;margin-bottom:12px">
+        <p class="sub">Signed in as <b style="color:var(--ink)">Teacher</b></p>
+        <button class="btn ghost sm" id="logout">Sign out</button>
+      </div>
+      <div class="stats" id="overview" style="margin-bottom:16px"></div>
+      <div class="card">
+        <div class="tabs" role="tablist" aria-label="Teacher sections">
+          <button role="tab" data-tab="marks" aria-selected="true">Enter marks</button>
+          <button role="tab" data-tab="exams" aria-selected="false">Exams</button>
+          <button role="tab" data-tab="students" aria-selected="false">Students</button>
+        </div>
+
+        <div data-panel="marks" class="stack">
+          <div class="row">
+            <label style="flex:1;min-width:200px">Select exam<select id="markExam"></select></label>
+            <button class="btn" id="saveMarks">Save marks</button>
+          </div>
+          <div class="stats" id="examStats"></div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Roll</th><th>Name</th><th>Marks</th><th>Grade</th><th>Status</th></tr></thead>
+            <tbody id="marksBody"></tbody>
+          </table></div>
+          <p class="hint">Leave blank for absent. Students only see results after you publish the exam.</p>
+        </div>
+
+        <div data-panel="exams" class="stack" hidden>
+          <form id="examForm" class="stack">
+            <div><h2>Create exam</h2><p class="sub">Add a new test or term exam.</p></div>
+            <div class="grid">
+              <label>Exam name<input name="name" required placeholder="Mid-Term"></label>
+              <label>Subject<input name="subject" required placeholder="Physics"></label>
+              <label>Date<input name="date" type="date" required></label>
+              <label>Max marks<input name="max" type="number" min="1" value="100" required></label>
+              <label>Pass marks<input name="pass" type="number" min="0" value="35" required></label>
+            </div>
+            <div><button class="btn" type="submit">Add exam</button></div>
+          </form>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Max / Pass</th><th>Results</th><th></th></tr></thead>
+            <tbody id="examsBody"></tbody>
+          </table></div>
+        </div>
+
+        <div data-panel="students" class="stack" hidden>
+          <form id="studentForm" class="stack">
+            <div><h2>Add student</h2><p class="sub">Students sign in with roll number and date of birth.</p></div>
+            <div class="grid">
+              <label>Roll number<input name="roll" required placeholder="1006"></label>
+              <label>Full name<input name="name" required placeholder="Jane Doe"></label>
+              <label>Class<input name="cls" required placeholder="10-A"></label>
+              <label>Date of birth<input name="dob" type="date" required></label>
+            </div>
+            <p id="studentErr" class="err" hidden></p>
+            <div><button class="btn" type="submit">Add student</button></div>
+          </form>
+          <div class="table-wrap"><table>
+            <thead><tr><th>Roll</th><th>Name</th><th>Class</th><th>Date of birth</th><th></th></tr></thead>
+            <tbody id="studentsBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- STUDENT -->
+  <main id="studentView" hidden>
+    <section id="studentLogin" class="card stack" style="max-width:420px;margin:0 auto">
+      <div><h2>Check your results</h2><p class="sub">Enter your roll number and date of birth.</p></div>
+      <form id="resultForm" class="stack">
+        <label>Roll number<input id="sRoll" required autocomplete="off"></label>
+        <label>Date of birth<input id="sDob" type="date" required></label>
+        <p id="resultErr" class="err" hidden>No student found with those details.</p>
+        <button class="btn" type="submit">View results</button>
+        <p class="hint">Demo: roll <b>1001</b>, DOB <b>2010-04-12</b></p>
+      </form>
+    </section>
+
+    <section id="studentResult" class="card stack" hidden>
+      <div class="result-head">
+        <div><h2 id="sName"></h2><p class="sub" id="sMeta"></p></div>
+        <div class="row no-print">
+          <button class="btn ghost sm" onclick="window.print()">Print</button>
+          <button class="btn ghost sm" id="sBack">Check another</button>
+        </div>
+      </div>
+      <div class="stats" id="sStats"></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th></tr></thead>
+        <tbody id="sBody"></tbody>
+      </table></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (v) => String(v).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const fmtDate = (d) => new Date(d + "T00:00").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+
+const STORE_KEY = "examdesk-v1";
+const seed = {
+  students: [
+    { roll: "1001", name: "Aarav Sharma", cls: "10-A", dob: "2010-04-12" },
+    { roll: "1002", name: "Priya Nair", cls: "10-A", dob: "2010-08-03" },
+    { roll: "1003", name: "Rohan Mehta", cls: "10-A", dob: "2009-12-21" },
+    { roll: "1004", name: "Sara Khan", cls: "10-A", dob: "2010-02-15" },
+    { roll: "1005", name: "Dev Patel", cls: "10-A", dob: "2010-06-30" },
+  ],
+  exams: [
+    { id: "e1", name: "Unit Test 1", subject: "Mathematics", date: "2026-09-10", max: 50, pass: 18, published: true },
+    { id: "e2", name: "Unit Test 1", subject: "Science", date: "2026-09-12", max: 50, pass: 18, published: true },
+    { id: "e3", name: "Mid-Term", subject: "English", date: "2026-10-20", max: 100, pass: 35, published: false },
+  ],
+  marks: {
+    e1: { 1001: 44, 1002: 48, 1003: 15, 1004: 39, 1005: 31 },
+    e2: { 1001: 41, 1002: 45, 1003: 22, 1004: 36, 1005: 28 },
+    e3: { 1001: 82, 1002: 91 },
+  },
+};
+let db;
+try { db = JSON.parse(localStorage.getItem(STORE_KEY)) || structuredClone(seed); } catch { db = structuredClone(seed); }
+const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch {} };
+
+function grade(score, exam) {
+  const p = (score / exam.max) * 100;
+  if (score < exam.pass) return "F";
+  if (p >= 90) return "A+";
+  if (p >= 80) return "A";
+  if (p >= 70) return "B";
+  if (p >= 60) return "C";
+  return "D";
+}
+const statusPill = (score, exam) =>
+  score == null ? '<span class="pill draft">Absent</span>'
+  : score >= exam.pass ? '<span class="pill pass">Pass</span>' : '<span class="pill fail">Fail</span>';
+
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+/* Role switching */
+function setRole(role) {
+  $("#roleTeacher").setAttribute("aria-selected", role === "teacher");
+  $("#roleStudent").setAttribute("aria-selected", role === "student");
+  $("#teacherView").hidden = role !== "teacher";
+  $("#studentView").hidden = role !== "student";
+}
+$("#roleTeacher").onclick = () => setRole("teacher");
+$("#roleStudent").onclick = () => setRole("student");
+
+/* Teacher auth */
+$("#loginForm").onsubmit = (e) => {
+  e.preventDefault();
+  if ($("#pin").value === "1234") {
+    $("#teacherLogin").hidden = true; $("#teacherPanel").hidden = false; $("#loginErr").hidden = true;
+    renderTeacher();
+  } else $("#loginErr").hidden = false;
+};
+$("#logout").onclick = () => { $("#teacherLogin").hidden = false; $("#teacherPanel").hidden = true; $("#pin").value = ""; };
+
+/* Teacher tabs */
+document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll("[data-panel]").forEach((p) => p.hidden = p.dataset.panel !== b.dataset.tab);
+});
+
+function renderTeacher() { renderOverview(); renderExamSelect(); renderMarks(); renderExams(); renderStudents(); }
+
+function renderOverview() {
+  const published = db.exams.filter((e) => e.published).length;
+  $("#overview").innerHTML = `
+    <div class="stat"><b>${db.students.length}</b><span>Students</span></div>
+    <div class="stat"><b>${db.exams.length}</b><span>Exams</span></div>
+    <div class="stat"><b>${published}</b><span>Results published</span></div>
+    <div class="stat"><b>${db.exams.length - published}</b><span>Drafts</span></div>`;
+}
+
+function renderExamSelect() {
+  const sel = $("#markExam"), prev = sel.value;
+  sel.innerHTML = db.exams.map((e) => `<option value="${e.id}">${esc(e.name)} — ${esc(e.subject)}</option>`).join("");
+  if (db.exams.some((e) => e.id === prev)) sel.value = prev;
+}
+$("#markExam").onchange = renderMarks;
+
+function renderMarks() {
+  const exam = db.exams.find((e) => e.id === $("#markExam").value);
+  const body = $("#marksBody");
+  if (!exam) { body.innerHTML = '<tr><td colspan="5" class="empty">Create an exam first.</td></tr>'; $("#examStats").innerHTML = ""; return; }
+  if (!db.students.length) { body.innerHTML = '<tr><td colspan="5" class="empty">Add students first.</td></tr>'; return; }
+  const m = db.marks[exam.id] || {};
+  body.innerHTML = db.students.map((s) => {
+    const v = m[s.roll];
+    return `<tr data-roll="${esc(s.roll)}">
+      <td>${esc(s.roll)}</td><td>${esc(s.name)}</td>
+      <td><label class="sr-only" for="m-${esc(s.roll)}">Marks for ${esc(s.name)}</label>
+        <input id="m-${esc(s.roll)}" type="number" min="0" max="${exam.max}" step="0.5" value="${v ?? ""}" placeholder="— / ${exam.max}"></td>
+      <td class="g">${v == null ? "—" : grade(v, exam)}</td><td class="st">${statusPill(v, exam)}</td></tr>`;
+  }).join("");
+  body.querySelectorAll("input").forEach((inp) => inp.oninput = () => {
+    const tr = inp.closest("tr"), n = inp.value === "" ? null : Number(inp.value);
+    const bad = n != null && (n < 0 || n > exam.max);
+    inp.style.borderColor = bad ? "var(--fail)" : "";
+    tr.querySelector(".g").textContent = n == null || bad ? "—" : grade(n, exam);
+    tr.querySelector(".st").innerHTML = bad ? '<span class="pill fail">Invalid</span>' : statusPill(n, exam);
+  });
+  renderExamStats(exam);
+}
+
+function renderExamStats(exam) {
+  const vals = Object.values(db.marks[exam.id] || {});
+  const passed = vals.filter((v) => v >= exam.pass).length;
+  const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : "—";
+  $("#examStats").innerHTML = `
+    <div class="stat"><b>${vals.length}/${db.students.length}</b><span>Marks entered</span></div>
+    <div class="stat"><b>${avg}</b><span>Class average</span></div>
+    <div class="stat"><b>${vals.length ? Math.max(...vals) : "—"}</b><span>Highest</span></div>
+    <div class="stat"><b>${vals.length ? Math.round((passed / vals.length) * 100) + "%" : "—"}</b><span>Pass rate</span></div>`;
+}
+
+$("#saveMarks").onclick = () => {
+  const exam = db.exams.find((e) => e.id === $("#markExam").value);
+  if (!exam) return;
+  const next = {};
+  for (const tr of $("#marksBody").querySelectorAll("tr[data-roll]")) {
+    const raw = tr.querySelector("input").value;
+    if (raw === "") continue;
+    const n = Number(raw);
+    if (Number.isNaN(n) || n < 0 || n > exam.max) { toast(`Marks must be between 0 and ${exam.max}`); tr.querySelector("input").focus(); return; }
+    next[tr.dataset.roll] = n;
+  }
+  db.marks[exam.id] = next; save(); renderExamStats(exam); toast("Marks saved");
+};
+
+function renderExams() {
+  const body = $("#examsBody");
+  if (!db.exams.length) { body.innerHTML = '<tr><td colspan="6" class="empty">No exams yet.</td></tr>'; return; }
+  body.innerHTML = [...db.exams].sort((a, b) => b.date.localeCompare(a.date)).map((e) => `
+    <tr><td><b>${esc(e.name)}</b></td><td>${esc(e.subject)}</td><td>${fmtDate(e.date)}</td><td>${e.max} / ${e.pass}</td>
+    <td><label class="switch"><input type="checkbox" data-pub="${e.id}" ${e.published ? "checked" : ""}>
+      <span class="pill ${e.published ? "live" : "draft"}">${e.published ? "Published" : "Draft"}</span></label></td>
+    <td><button class="btn danger sm" data-del-exam="${e.id}" aria-label="Delete ${esc(e.name)} ${esc(e.subject)}">Delete</button></td></tr>`).join("");
+  body.querySelectorAll("[data-pub]").forEach((c) => c.onchange = () => {
+    db.exams.find((e) => e.id === c.dataset.pub).published = c.checked; save(); renderExams(); renderOverview();
+    toast(c.checked ? "Results published to students" : "Results hidden from students");
+  });
+  body.querySelectorAll("[data-del-exam]").forEach((b) => b.onclick = () => {
+    if (!confirm("Delete this exam and all its marks?")) return;
+    db.exams = db.exams.filter((e) => e.id !== b.dataset.delExam); delete db.marks[b.dataset.delExam];
+    save(); renderTeacher(); toast("Exam deleted");
+  });
+}
+
+$("#examForm").onsubmit = (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target), max = Number(f.get("max")), pass = Number(f.get("pass"));
+  if (pass > max) { toast("Pass marks can't exceed max marks"); return; }
+  const exam = { id: uid(), name: f.get("name").trim(), subject: f.get("subject").trim(), date: f.get("date"), max, pass, published: false };
+  db.exams.push(exam); save(); e.target.reset(); renderTeacher(); $("#markExam").value = exam.id; renderMarks();
+  toast("Exam created");
+};
+
+function renderStudents() {
+  const body = $("#studentsBody");
+  if (!db.students.length) { body.innerHTML = '<tr><td colspan="5" class="empty">No students yet.</td></tr>'; return; }
+  body.innerHTML = db.students.map((s) => `
+    <tr><td>${esc(s.roll)}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td>${fmtDate(s.dob)}</td>
+    <td><button class="btn danger sm" data-del-st="${esc(s.roll)}" aria-label="Remove ${esc(s.name)}">Remove</button></td></tr>`).join("");
+  body.querySelectorAll("[data-del-st]").forEach((b) => b.onclick = () => {
+    if (!confirm("Remove this student?")) return;
+    db.students = db.students.filter((s) => s.roll !== b.dataset.delSt);
+    Object.values(db.marks).forEach((m) => delete m[b.dataset.delSt]);
+    save(); renderTeacher(); toast("Student removed");
+  });
+}
+
+$("#studentForm").onsubmit = (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target), roll = f.get("roll").trim(), err = $("#studentErr");
+  if (db.students.some((s) => s.roll === roll)) { err.textContent = "That roll number already exists."; err.hidden = false; return; }
+  err.hidden = true;
+  db.students.push({ roll, name: f.get("name").trim(), cls: f.get("cls").trim(), dob: f.get("dob") });
+  db.students.sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+  save(); e.target.reset(); renderTeacher(); toast("Student added");
+};
+
+/* Student results */
+$("#resultForm").onsubmit = (e) => {
+  e.preventDefault();
+  const s = db.students.find((x) => x.roll === $("#sRoll").value.trim() && x.dob === $("#sDob").value);
+  if (!s) { $("#resultErr").hidden = false; return; }
+  $("#resultErr").hidden = true; showResults(s);
+};
+$("#sBack").onclick = () => { $("#studentResult").hidden = true; $("#studentLogin").hidden = false; $("#resultForm").reset(); };
+
+function showResults(s) {
+  $("#studentLogin").hidden = true; $("#studentResult").hidden = false;
+  $("#sName").textContent = s.name;
+  $("#sMeta").textContent = `Roll ${s.roll} · Class ${s.cls}`;
+  const rows = db.exams.filter((e) => e.published).sort((a, b) => b.date.localeCompare(a.date));
+  let got = 0, total = 0, passed = 0, taken = 0;
+  $("#sBody").innerHTML = rows.length ? rows.map((e) => {
+    const v = (db.marks[e.id] || {})[s.roll];
+    if (v != null) { got += v; total += e.max; taken++; if (v >= e.pass) passed++; }
+    return `<tr><td><b>${esc(e.name)}</b></td><td>${esc(e.subject)}</td><td>${fmtDate(e.date)}</td>
+      <td>${v == null ? "—" : `${v} / ${e.max}`}</td><td>${v == null ? "—" : ((v / e.max) * 100).toFixed(1)}</td>
+      <td>${v == null ? "—" : `<b>${grade(v, e)}</b>`}</td><td>${statusPill(v, e)}</td></tr>`;
+  }).join("") : '<tr><td colspan="7" class="empty">No results have been published yet. Check back later.</td></tr>';
+  const pct = total ? ((got / total) * 100).toFixed(1) + "%" : "—";
+  $("#sStats").innerHTML = `
+    <div class="stat"><b>${pct}</b><span>Overall percentage</span></div>
+    <div class="stat"><b>${got} / ${total || "—"}</b><span>Total marks</span></div>
+    <div class="stat"><b>${passed}/${taken}</b><span>Exams passed</span></div>
+    <div class="stat"><b>${taken && passed === taken ? '<span style="color:var(--pass)">Pass</span>' : taken ? '<span style="color:var(--fail)">Needs work</span>' : "—"}</b><span>Result</span></div>`;
+}
+</script>
+</body>
+</html>
