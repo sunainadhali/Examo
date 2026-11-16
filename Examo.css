@@ -89,16 +89,18 @@
   background: #ebe9e2;
   border-radius: 10px;
 }
-.dashboard-nav a {
+.dashboard-nav button {
+  border: 0;
+  background: transparent;
   padding: 7px 12px;
   border-radius: 7px;
   color: var(--ink);
   font-size: 13px;
   font-weight: 500;
-  text-decoration: none;
+  cursor: pointer;
 }
-.dashboard-nav a:hover,
-.dashboard-nav a:focus-visible {
+.dashboard-nav button:hover,
+.dashboard-nav button:focus-visible {
   background: var(--card);
   outline: 2px solid var(--accent);
   outline-offset: 1px;
@@ -147,4 +149,42 @@
 .dashboard-section button:disabled {
   cursor: not-allowed;
   opacity: .65;
+}
+.question-bank-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.question-bank-subject {
+  grid-column: 1 / -1;
+  margin: 8px 0 -4px;
+  font-size: 15px;
+}
+.question-bank-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fcfbf8;
+}
+.question-bank-card h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+.question-bank-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.leaderboard-you {
+  background: #e3eafb;
+}
+.you-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
 }

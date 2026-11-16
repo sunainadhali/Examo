@@ -23,6 +23,43 @@ const seed = {
     e3: { 1001: 82, 1002: 91 },
   },
 };
+const questionBankExamples = {
+  Mathematics: [
+    { title: "Number Systems and Polynomials", focus: "Real numbers, prime factorisation, zeros and polynomial identities." },
+    { title: "Linear and Quadratic Equations", focus: "Pair of linear equations, graphs, roots and word problems." },
+    { title: "Geometry and Triangles", focus: "Similarity, circles, constructions and coordinate geometry." },
+    { title: "Trigonometry and Mensuration", focus: "Trigonometric ratios, heights and distances, areas and volumes." },
+    { title: "Statistics and Probability", focus: "Data interpretation, mean, median, mode and basic probability." },
+  ],
+  Science: [
+    { title: "Chemical Reactions and Materials", focus: "Chemical equations, acids, bases, salts and metals." },
+    { title: "Life Processes", focus: "Nutrition, respiration, transport and excretion in living organisms." },
+    { title: "Light and the Human Eye", focus: "Reflection, refraction, lenses, vision and common defects." },
+    { title: "Electricity and Magnetism", focus: "Circuits, resistance, power, magnetic effects and applications." },
+    { title: "Environment and Energy", focus: "Ecosystems, energy resources, waste and conservation." },
+  ],
+  English: [
+    { title: "Reading Comprehension", focus: "Unseen passages, inference, vocabulary and evidence-based answers." },
+    { title: "Grammar Practice", focus: "Tenses, reported speech, subject-verb agreement and editing." },
+    { title: "Writing Skills", focus: "Formal letters, articles, analytical paragraphs and notices." },
+    { title: "Prose and Drama", focus: "Theme, character, setting, context and short-text responses." },
+    { title: "Poetry and Literature", focus: "Poetic devices, tone, imagery and comparative responses." },
+  ],
+  "Social Science": [
+    { title: "History and Source Analysis", focus: "Chronology, historical causes, consequences and sources." },
+    { title: "Geography and Resources", focus: "Resources, agriculture, industries and sustainable development." },
+    { title: "Civics and Democracy", focus: "Power sharing, federalism, political parties and outcomes." },
+    { title: "Economics and Development", focus: "Development, sectors, money, credit and globalisation." },
+    { title: "Maps and Case Studies", focus: "Map skills, data interpretation and cross-topic case studies." },
+  ],
+  Hindi: [
+    { title: "Reading Comprehension", focus: "Unseen passages, central ideas, inference and vocabulary." },
+    { title: "Grammar Practice", focus: "Sentence structure, word forms, idioms and editing." },
+    { title: "Writing Skills", focus: "Letters, paragraphs, notices and structured written responses." },
+    { title: "Prose and Drama", focus: "Themes, characters, context and evidence-based answers." },
+    { title: "Poetry and Literature", focus: "Poetic meaning, imagery, tone and literary devices." },
+  ],
+};
 let db;
 try { db = JSON.parse(localStorage.getItem(STORE_KEY)) || structuredClone(seed); } catch { db = structuredClone(seed); }
 const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch {} };
@@ -71,9 +108,67 @@ document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
   document.querySelectorAll("[data-panel]").forEach((p) => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
+document.querySelectorAll(".dashboard-nav button").forEach((button) => button.onclick = () => {
+  document.querySelector(button.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" });
+});
 
 function renderTeacher() {
   renderOverview(); renderExamSelect(); renderMarks(); renderExams(); renderStudents(); renderTeacherAnalysis();
+  renderTopStudents("#teacherTop10"); renderQuestionBanks("#teacherQuestionBanks");
+}
+
+function renderQuestionBanks(containerSelector) {
+  const container = $(containerSelector);
+  const subjects = [...new Set([
+    ...Object.keys(questionBankExamples),
+    ...db.exams.map((exam) => exam.subject.trim()).filter(Boolean),
+  ])];
+  container.innerHTML = subjects.map((subject) => {
+    const banks = questionBankExamples[subject] || [
+      { title: `${subject} - Core Concepts`, focus: "Key definitions, facts and foundational ideas." },
+      { title: `${subject} - Practice and Application`, focus: "Short-answer practice and real-world applications." },
+      { title: `${subject} - Case Studies`, focus: "Evidence, interpretation and subject-based scenarios." },
+      { title: `${subject} - Challenge Set`, focus: "Multi-step and higher-order thinking questions." },
+      { title: `${subject} - Revision Test`, focus: "A mixed-topic review for Class 10 preparation." },
+    ];
+    return `<h3 class="question-bank-subject">${esc(subject)}</h3>${banks.map((bank, index) => `
+      <article class="question-bank-card">
+        <h4>Bank ${index + 1}: ${esc(bank.title)}</h4>
+        <p>${esc(bank.focus)}</p>
+      </article>`).join("")}`;
+  }).join("");
+}
+
+function renderTopStudents(containerSelector, currentRoll = "") {
+  const exams = db.exams.filter((exam) => exam.published);
+  const ranked = db.students.map((student) => {
+    let earned = 0, possible = 0, examCount = 0;
+    exams.forEach((exam) => {
+      const score = (db.marks[exam.id] || {})[student.roll];
+      if (score == null) return;
+      earned += score;
+      possible += exam.max;
+      examCount++;
+    });
+    return { ...student, average: possible ? earned / possible * 100 : null, examCount };
+  }).filter((student) => student.average != null)
+    .sort((a, b) => b.average - a.average || a.name.localeCompare(b.name));
+
+  let previousAverage = null, previousRank = 0;
+  const top = ranked.slice(0, 10).map((student, index) => {
+    if (previousAverage == null || Math.abs(student.average - previousAverage) > 0.000001) {
+      previousRank = index + 1;
+    }
+    previousAverage = student.average;
+    return { ...student, rank: previousRank };
+  });
+  const body = $(containerSelector);
+  body.innerHTML = top.length ? top.map((student) => `
+    <tr class="${student.roll === currentRoll ? "leaderboard-you" : ""}">
+      <td><b>${student.rank}</b></td>
+      <td>${esc(student.name)}${student.roll === currentRoll ? ' <span class="you-badge">You</span>' : ""}</td>
+      <td>${esc(student.cls)}</td><td>${student.average.toFixed(1)}%</td><td>${student.examCount}</td>
+    </tr>`).join("") : '<tr><td colspan="5" class="empty">No published marks are available for the leaderboard yet.</td></tr>';
 }
 
 function renderLineChart(svg, emptyMessage, data) {
@@ -184,7 +279,7 @@ $("#saveMarks").onclick = () => {
     if (Number.isNaN(n) || n < 0 || n > exam.max) { toast(`Marks must be between 0 and ${exam.max}`); tr.querySelector("input").focus(); return; }
     next[tr.dataset.roll] = n;
   }
-  db.marks[exam.id] = next; save(); renderExamStats(exam); renderTeacherAnalysis(); toast("Marks saved");
+  db.marks[exam.id] = next; save(); renderExamStats(exam); renderTeacherAnalysis(); renderTopStudents("#teacherTop10"); toast("Marks saved");
 };
 
 function renderExams() {
@@ -196,7 +291,7 @@ function renderExams() {
       <span class="pill ${e.published ? "live" : "draft"}">${e.published ? "Published" : "Draft"}</span></label></td>
     <td><button class="btn danger sm" data-del-exam="${e.id}" aria-label="Delete ${esc(e.name)} ${esc(e.subject)}">Delete</button></td></tr>`).join("");
   body.querySelectorAll("[data-pub]").forEach((c) => c.onchange = () => {
-    db.exams.find((e) => e.id === c.dataset.pub).published = c.checked; save(); renderExams(); renderOverview(); renderTeacherAnalysis();
+    db.exams.find((e) => e.id === c.dataset.pub).published = c.checked; save(); renderExams(); renderOverview(); renderTeacherAnalysis(); renderTopStudents("#teacherTop10");
     toast(c.checked ? "Results published to students" : "Results hidden from students");
   });
   body.querySelectorAll("[data-del-exam]").forEach((b) => b.onclick = () => {
@@ -267,6 +362,8 @@ function showResults(s) {
       <td>${v == null ? "—" : `<b>${grade(v, e)}</b>`}</td><td>${statusPill(v, e)}</td></tr>`;
   }).join("") : '<tr><td colspan="7" class="empty">No results have been published yet. Check back later.</td></tr>';
   renderLineChart("#studentChart", "#studentChartEmpty", chartData.reverse());
+  renderTopStudents("#studentTop10", s.roll);
+  renderQuestionBanks("#studentQuestionBanks");
   const pct = total ? ((got / total) * 100).toFixed(1) + "%" : "—";
   $("#sStats").innerHTML = `
     <div class="stat"><b>${pct}</b><span>Overall percentage</span></div>

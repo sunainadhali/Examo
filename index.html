@@ -38,9 +38,10 @@
       </div>
       <div class="stats overview" id="overview"></div>
       <nav class="dashboard-nav" aria-label="Teacher dashboard">
-        <a href="#teacher-analysis">Result analysis</a>
-        <a href="#teacher-chat">Chat with teachers</a>
-        <a href="#teacher-question-bank">Question banks</a>
+        <button type="button" data-target="#teacher-analysis">Results analysis</button>
+        <button type="button" data-target="#teacher-chat">Chat with teachers</button>
+        <button type="button" data-target="#teacher-question-bank">Question banks</button>
+        <button type="button" data-target="#teacher-top10">Top 10 students</button>
       </nav>
       <section class="card dashboard-section" id="teacher-analysis">
         <div><h2>Result analysis</h2><p class="sub">Class average by exam, updated as marks change.</p></div>
@@ -52,7 +53,15 @@
         <button class="btn" type="button" disabled>Live chat unavailable</button>
       </section>
       <section class="card dashboard-section" id="teacher-question-bank">
-        <div><h2>Question banks</h2><p class="sub">Question banks will be available here when they are added.</p></div>
+        <div><h2>Class 10 question banks</h2><p class="sub">Example practice-bank outlines grouped by subject.</p></div>
+        <div class="question-bank-grid" id="teacherQuestionBanks"></div>
+      </section>
+      <section class="card dashboard-section" id="teacher-top10">
+        <div><h2>Top 10 students</h2><p class="sub">Ranked by weighted average across published exams.</p></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Average</th><th>Exams</th></tr></thead>
+          <tbody id="teacherTop10"></tbody>
+        </table></div>
       </section>
       <div class="card">
         <div class="tabs" role="tablist" aria-label="Teacher sections">
@@ -136,9 +145,10 @@
       </div>
       <div class="stats" id="sStats"></div>
       <nav class="dashboard-nav" aria-label="Student dashboard">
-        <a href="#student-analysis">Result analysis</a>
-        <a href="#student-chat">Chat with teachers</a>
-        <a href="#student-question-bank">Question banks</a>
+        <button type="button" data-target="#student-analysis">Results analysis</button>
+        <button type="button" data-target="#student-chat">Chat with teachers</button>
+        <button type="button" data-target="#student-question-bank">Question banks</button>
+        <button type="button" data-target="#student-top10">Top 10 students</button>
       </nav>
       <section class="dashboard-section" id="student-analysis">
         <div><h2>Result analysis</h2><p class="sub">Your published results by exam.</p></div>
@@ -150,7 +160,15 @@
         <button class="btn" type="button" disabled>Live chat unavailable</button>
       </section>
       <section class="card dashboard-section" id="student-question-bank">
-        <div><h2>Question banks</h2><p class="sub">Question banks will be available here when they are added.</p></div>
+        <div><h2>Class 10 question banks</h2><p class="sub">Example practice-bank outlines grouped by subject.</p></div>
+        <div class="question-bank-grid" id="studentQuestionBanks"></div>
+      </section>
+      <section class="card dashboard-section" id="student-top10">
+        <div><h2>Top 10 students</h2><p class="sub">Ranked by weighted average across published exams.</p></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>Average</th><th>Exams</th></tr></thead>
+          <tbody id="studentTop10"></tbody>
+        </table></div>
       </section>
       <div class="table-wrap"><table>
         <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th></tr></thead>
