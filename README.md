@@ -8,7 +8,8 @@ A lightweight, browser-based exam management portal built with **HTML, CSS, and 
 > **External libraries:** None
 
 ---
-
+[view live ](https://sunainadhali.github.io/Examo/
+)
 ## Table of Contents
 
 1. [Project Overview](#1-project-overview)
