@@ -37,6 +37,23 @@
         <button class="btn ghost sm" id="logout">Sign out</button>
       </div>
       <div class="stats overview" id="overview"></div>
+      <nav class="dashboard-nav" aria-label="Teacher dashboard">
+        <a href="#teacher-analysis">Result analysis</a>
+        <a href="#teacher-chat">Chat with teachers</a>
+        <a href="#teacher-question-bank">Question banks</a>
+      </nav>
+      <section class="card dashboard-section" id="teacher-analysis">
+        <div><h2>Result analysis</h2><p class="sub">Class average by exam, updated as marks change.</p></div>
+        <div class="chart-wrap"><svg id="teacherChart" class="line-chart" role="img" aria-label="Class average results by exam"></svg></div>
+        <p id="teacherChartEmpty" class="empty" hidden>No marks are available to analyze yet.</p>
+      </section>
+      <section class="card dashboard-section" id="teacher-chat">
+        <div><h2>Chat with teachers</h2><p class="sub">A live chat destination has not been configured for this dashboard yet.</p></div>
+        <button class="btn" type="button" disabled>Live chat unavailable</button>
+      </section>
+      <section class="card dashboard-section" id="teacher-question-bank">
+        <div><h2>Question banks</h2><p class="sub">Question banks will be available here when they are added.</p></div>
+      </section>
       <div class="card">
         <div class="tabs" role="tablist" aria-label="Teacher sections">
           <button role="tab" data-tab="marks" aria-selected="true">Enter marks</button>
@@ -118,6 +135,23 @@
         </div>
       </div>
       <div class="stats" id="sStats"></div>
+      <nav class="dashboard-nav" aria-label="Student dashboard">
+        <a href="#student-analysis">Result analysis</a>
+        <a href="#student-chat">Chat with teachers</a>
+        <a href="#student-question-bank">Question banks</a>
+      </nav>
+      <section class="dashboard-section" id="student-analysis">
+        <div><h2>Result analysis</h2><p class="sub">Your published results by exam.</p></div>
+        <div class="chart-wrap"><svg id="studentChart" class="line-chart" role="img" aria-label="Your results by exam"></svg></div>
+        <p id="studentChartEmpty" class="empty" hidden>No published marks are available to analyze yet.</p>
+      </section>
+      <section class="card dashboard-section" id="student-chat">
+        <div><h2>Chat with teachers</h2><p class="sub">A live chat destination has not been configured for this dashboard yet.</p></div>
+        <button class="btn" type="button" disabled>Live chat unavailable</button>
+      </section>
+      <section class="card dashboard-section" id="student-question-bank">
+        <div><h2>Question banks</h2><p class="sub">Question banks will be available here when they are added.</p></div>
+      </section>
       <div class="table-wrap"><table>
         <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th></tr></thead>
         <tbody id="sBody"></tbody>

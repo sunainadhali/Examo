@@ -80,3 +80,71 @@
 .result-needs-work {
   color: var(--fail);
 }
+.dashboard-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px;
+  background: #ebe9e2;
+  border-radius: 10px;
+}
+.dashboard-nav a {
+  padding: 7px 12px;
+  border-radius: 7px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+.dashboard-nav a:hover,
+.dashboard-nav a:focus-visible {
+  background: var(--card);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.dashboard-section {
+  scroll-margin-top: 16px;
+  margin-bottom: 16px;
+}
+.dashboard-section > div:first-child {
+  margin-bottom: 12px;
+}
+.chart-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.line-chart {
+  display: block;
+  width: 100%;
+  min-width: 420px;
+  height: auto;
+}
+.line-chart text {
+  fill: var(--ink-soft);
+  font: 12px system-ui, sans-serif;
+}
+.line-chart .chart-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.line-chart .chart-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.line-chart .chart-point {
+  fill: var(--accent);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.line-chart .chart-value {
+  fill: var(--ink);
+  font-weight: 600;
+}
+.dashboard-section button:disabled {
+  cursor: not-allowed;
+  opacity: .65;
+}

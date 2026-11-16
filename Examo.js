@@ -72,7 +72,54 @@ document.querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
   document.querySelectorAll("[data-panel]").forEach((p) => p.hidden = p.dataset.panel !== b.dataset.tab);
 });
 
-function renderTeacher() { renderOverview(); renderExamSelect(); renderMarks(); renderExams(); renderStudents(); }
+function renderTeacher() {
+  renderOverview(); renderExamSelect(); renderMarks(); renderExams(); renderStudents(); renderTeacherAnalysis();
+}
+
+function renderLineChart(svg, emptyMessage, data) {
+  const empty = $(emptyMessage);
+  const chart = $(svg);
+  if (!data.length) {
+    chart.hidden = true;
+    empty.hidden = false;
+    return;
+  }
+  chart.hidden = false;
+  empty.hidden = true;
+
+  const width = Math.max(720, data.length * 100), height = 300;
+  const left = 48, right = 20, top = 18, bottom = 58;
+  const plotWidth = width - left - right, plotHeight = height - top - bottom;
+  const x = (index) => data.length === 1 ? left + plotWidth / 2 : left + index * plotWidth / (data.length - 1);
+  const y = (value) => top + (100 - value) * plotHeight / 100;
+  const grid = [0, 25, 50, 75, 100].map((value) => `
+    <line class="chart-grid" x1="${left}" y1="${y(value)}" x2="${width - right}" y2="${y(value)}"></line>
+    <text x="${left - 10}" y="${y(value) + 4}" text-anchor="end">${value}%</text>`).join("");
+  const points = data.map((item, index) => `${x(index)},${y(item.value)}`).join(" ");
+  const labels = data.map((item, index) => {
+    const label = item.label.length > 16 ? `${item.label.slice(0, 15)}…` : item.label;
+    return `<text x="${x(index)}" y="${height - 24}" text-anchor="middle"><title>${esc(item.label)}</title>${esc(label)}</text>
+      <text class="chart-value" x="${x(index)}" y="${y(item.value) - 12}" text-anchor="middle">${item.value.toFixed(1)}%</text>
+      <circle class="chart-point" cx="${x(index)}" cy="${y(item.value)}" r="5"><title>${esc(item.label)}: ${item.value.toFixed(1)}%</title></circle>`;
+  }).join("");
+  chart.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  chart.innerHTML = `${grid}<polyline class="chart-line" points="${points}"></polyline>${labels}`;
+}
+
+function renderTeacherAnalysis() {
+  const activeExamId = $("#markExam").value;
+  const data = [...db.exams].sort((a, b) => a.date.localeCompare(b.date)).flatMap((exam) => {
+    let scores = Object.values(db.marks[exam.id] || {});
+    if (exam.id === activeExamId) {
+      scores = [...$("#marksBody").querySelectorAll("tr[data-roll] input")]
+        .map((input) => input.value === "" ? null : Number(input.value))
+        .filter((score) => score != null && Number.isFinite(score) && score >= 0 && score <= exam.max);
+    }
+    if (!scores.length) return [];
+    return [{ label: `${exam.name} · ${exam.subject}`, value: scores.reduce((sum, score) => sum + score, 0) / scores.length / exam.max * 100 }];
+  });
+  renderLineChart("#teacherChart", "#teacherChartEmpty", data);
+}
 
 function renderOverview() {
   const published = db.exams.filter((e) => e.published).length;
@@ -88,7 +135,7 @@ function renderExamSelect() {
   sel.innerHTML = db.exams.map((e) => `<option value="${e.id}">${esc(e.name)} — ${esc(e.subject)}</option>`).join("");
   if (db.exams.some((e) => e.id === prev)) sel.value = prev;
 }
-$("#markExam").onchange = renderMarks;
+$("#markExam").onchange = () => { renderMarks(); renderTeacherAnalysis(); };
 
 function renderMarks() {
   const exam = db.exams.find((e) => e.id === $("#markExam").value);
@@ -110,6 +157,7 @@ function renderMarks() {
     inp.style.borderColor = bad ? "var(--fail)" : "";
     tr.querySelector(".g").textContent = n == null || bad ? "—" : grade(n, exam);
     tr.querySelector(".st").innerHTML = bad ? '<span class="pill fail">Invalid</span>' : statusPill(n, exam);
+    renderTeacherAnalysis();
   });
   renderExamStats(exam);
 }
@@ -136,7 +184,7 @@ $("#saveMarks").onclick = () => {
     if (Number.isNaN(n) || n < 0 || n > exam.max) { toast(`Marks must be between 0 and ${exam.max}`); tr.querySelector("input").focus(); return; }
     next[tr.dataset.roll] = n;
   }
-  db.marks[exam.id] = next; save(); renderExamStats(exam); toast("Marks saved");
+  db.marks[exam.id] = next; save(); renderExamStats(exam); renderTeacherAnalysis(); toast("Marks saved");
 };
 
 function renderExams() {
@@ -148,7 +196,7 @@ function renderExams() {
       <span class="pill ${e.published ? "live" : "draft"}">${e.published ? "Published" : "Draft"}</span></label></td>
     <td><button class="btn danger sm" data-del-exam="${e.id}" aria-label="Delete ${esc(e.name)} ${esc(e.subject)}">Delete</button></td></tr>`).join("");
   body.querySelectorAll("[data-pub]").forEach((c) => c.onchange = () => {
-    db.exams.find((e) => e.id === c.dataset.pub).published = c.checked; save(); renderExams(); renderOverview();
+    db.exams.find((e) => e.id === c.dataset.pub).published = c.checked; save(); renderExams(); renderOverview(); renderTeacherAnalysis();
     toast(c.checked ? "Results published to students" : "Results hidden from students");
   });
   body.querySelectorAll("[data-del-exam]").forEach((b) => b.onclick = () => {
@@ -207,13 +255,18 @@ function showResults(s) {
   $("#sMeta").textContent = `Roll ${s.roll} · Class ${s.cls}`;
   const rows = db.exams.filter((e) => e.published).sort((a, b) => b.date.localeCompare(a.date));
   let got = 0, total = 0, passed = 0, taken = 0;
+  const chartData = [];
   $("#sBody").innerHTML = rows.length ? rows.map((e) => {
     const v = (db.marks[e.id] || {})[s.roll];
-    if (v != null) { got += v; total += e.max; taken++; if (v >= e.pass) passed++; }
+    if (v != null) {
+      got += v; total += e.max; taken++; if (v >= e.pass) passed++;
+      chartData.push({ label: `${e.name} · ${e.subject}`, value: (v / e.max) * 100 });
+    }
     return `<tr><td><b>${esc(e.name)}</b></td><td>${esc(e.subject)}</td><td>${fmtDate(e.date)}</td>
       <td>${v == null ? "—" : `${v} / ${e.max}`}</td><td>${v == null ? "—" : ((v / e.max) * 100).toFixed(1)}</td>
       <td>${v == null ? "—" : `<b>${grade(v, e)}</b>`}</td><td>${statusPill(v, e)}</td></tr>`;
   }).join("") : '<tr><td colspan="7" class="empty">No results have been published yet. Check back later.</td></tr>';
+  renderLineChart("#studentChart", "#studentChartEmpty", chartData.reverse());
   const pct = total ? ((got / total) * 100).toFixed(1) + "%" : "—";
   $("#sStats").innerHTML = `
     <div class="stat"><b>${pct}</b><span>Overall percentage</span></div>
