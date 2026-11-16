@@ -80,14 +80,35 @@
 .result-needs-work {
   color: var(--fail);
 }
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.dashboard-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dashboard-content > .teacher-toolbar,
+.dashboard-content > .overview,
+.dashboard-content > .dashboard-section {
+  margin-bottom: 0;
+}
 .dashboard-nav {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: 8px;
-  margin: 0 0 16px;
+  position: sticky;
+  top: 16px;
+  margin: 0;
   padding: 10px;
   background: #ebe9e2;
   border-radius: 10px;
+  height: max-content;
 }
 .dashboard-nav button {
   border: 0;
@@ -98,6 +119,7 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  text-align: left;
 }
 .dashboard-nav button:hover,
 .dashboard-nav button:focus-visible {
@@ -187,4 +209,19 @@
   color: #fff;
   font-size: 11px;
   font-weight: 600;
+}
+@media (max-width: 760px) {
+  .dashboard-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .dashboard-nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .dashboard-nav button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
 }

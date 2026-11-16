@@ -32,17 +32,19 @@
     </section>
 
     <section id="teacherPanel" hidden>
-      <div class="row no-print teacher-toolbar">
-        <p class="sub">Signed in as <b class="teacher-label">Teacher</b></p>
-        <button class="btn ghost sm" id="logout">Sign out</button>
-      </div>
-      <div class="stats overview" id="overview"></div>
-      <nav class="dashboard-nav" aria-label="Teacher dashboard">
+      <div class="dashboard-layout">
+      <nav class="dashboard-nav no-print" aria-label="Teacher dashboard">
         <button type="button" data-target="#teacher-analysis">Results analysis</button>
         <button type="button" data-target="#teacher-chat">Chat with teachers</button>
         <button type="button" data-target="#teacher-question-bank">Question banks</button>
         <button type="button" data-target="#teacher-top10">Top 10 students</button>
       </nav>
+      <div class="dashboard-content">
+      <div class="row no-print teacher-toolbar">
+        <p class="sub">Signed in as <b class="teacher-label">Teacher</b></p>
+        <button class="btn ghost sm" id="logout">Sign out</button>
+      </div>
+      <div class="stats overview" id="overview"></div>
       <section class="card dashboard-section" id="teacher-analysis">
         <div><h2>Result analysis</h2><p class="sub">Class average by exam, updated as marks change.</p></div>
         <div class="chart-wrap"><svg id="teacherChart" class="line-chart" role="img" aria-label="Class average results by exam"></svg></div>
@@ -119,6 +121,8 @@
           </table></div>
         </div>
       </div>
+      </div>
+      </div>
     </section>
   </main>
 
@@ -135,7 +139,14 @@
       </form>
     </section>
 
-    <section id="studentResult" class="card stack" hidden>
+    <section id="studentResult" class="dashboard-layout" hidden>
+      <nav class="dashboard-nav no-print" aria-label="Student dashboard">
+        <button type="button" data-target="#student-analysis">Results analysis</button>
+        <button type="button" data-target="#student-chat">Chat with teachers</button>
+        <button type="button" data-target="#student-question-bank">Question banks</button>
+        <button type="button" data-target="#student-top10">Top 10 students</button>
+      </nav>
+      <div class="dashboard-content card stack">
       <div class="result-head">
         <div><h2 id="sName"></h2><p class="sub" id="sMeta"></p></div>
         <div class="row no-print">
@@ -144,12 +155,6 @@
         </div>
       </div>
       <div class="stats" id="sStats"></div>
-      <nav class="dashboard-nav" aria-label="Student dashboard">
-        <button type="button" data-target="#student-analysis">Results analysis</button>
-        <button type="button" data-target="#student-chat">Chat with teachers</button>
-        <button type="button" data-target="#student-question-bank">Question banks</button>
-        <button type="button" data-target="#student-top10">Top 10 students</button>
-      </nav>
       <section class="dashboard-section" id="student-analysis">
         <div><h2>Result analysis</h2><p class="sub">Your published results by exam.</p></div>
         <div class="chart-wrap"><svg id="studentChart" class="line-chart" role="img" aria-label="Your results by exam"></svg></div>
@@ -174,6 +179,7 @@
         <thead><tr><th>Exam</th><th>Subject</th><th>Date</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th></tr></thead>
         <tbody id="sBody"></tbody>
       </table></div>
+      </div>
     </section>
   </main>
 </div>
